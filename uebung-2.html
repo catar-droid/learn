@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satzglieder-Abenteuer 🦸</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --subj:#FF6B35;--pred:#7C3AED;--ort:#059669;--zeit:#0284C7;
+  --bg:#0F0F1A;--card:#1A1A2E;--card2:#16213E;--text:#F1F0FF;--muted:#9CA3C8;
+  --gold:#FFD700;--correct:#22C55E;--wrong:#F43F5E;
+  --glow-s:0 0 18px #FF6B3566;--glow-p:0 0 18px #7C3AED66;
+  --glow-o:0 0 18px #05996966;--glow-z:0 0 18px #0284C766;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Quicksand',sans-serif;background:var(--bg);
+  background-image:radial-gradient(ellipse at 15% 10%,#FF6B3515 0%,transparent 45%),
+  radial-gradient(ellipse at 85% 90%,#7C3AED15 0%,transparent 45%),
+  radial-gradient(ellipse at 80% 10%,#05996915 0%,transparent 45%),
+  radial-gradient(ellipse at 15% 90%,#0284C715 0%,transparent 45%);
+  min-height:100vh;color:var(--text);padding-bottom:60px;}
+.stars-bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.star{position:absolute;width:2px;height:2px;background:white;border-radius:50%;animation:twinkle 3s infinite alternate;}
+@keyframes twinkle{0%{opacity:0.1;transform:scale(1);}100%{opacity:0.8;transform:scale(1.5);}}
+header{text-align:center;padding:40px 20px 20px;position:relative;z-index:1;}
+h1{font-family:'Baloo 2',cursive;font-size:clamp(2rem,7vw,3.5rem);font-weight:800;
+  background:linear-gradient(135deg,#FF6B35,#FFD700,#7C3AED,#059669,#0284C7);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 2px 8px rgba(255,215,0,0.3));}
+.subtitle{color:var(--muted);font-size:1rem;margin-top:8px;font-weight:600;}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:16px auto;max-width:700px;padding:0 16px;position:relative;z-index:1;}
+.legend-item{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:50px;padding:7px 16px;font-size:0.82rem;font-weight:700;border:2px solid;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.li-s{border-color:var(--subj);color:var(--subj);}.li-s .legend-dot{background:var(--subj);box-shadow:var(--glow-s);}
+.li-p{border-color:var(--pred);color:var(--pred);}.li-p .legend-dot{background:var(--pred);box-shadow:var(--glow-p);}
+.li-o{border-color:var(--ort);color:var(--ort);}.li-o .legend-dot{background:var(--ort);box-shadow:var(--glow-o);}
+.li-z{border-color:var(--zeit);color:var(--zeit);}.li-z .legend-dot{background:var(--zeit);box-shadow:var(--glow-z);}
+.hud{display:flex;justify-content:center;align-items:center;gap:16px;margin:0 auto 24px;flex-wrap:wrap;padding:0 16px;position:relative;z-index:1;}
+.hud-pill{background:var(--card);border:2px solid #ffffff18;border-radius:50px;padding:10px 22px;font-weight:800;font-size:1rem;display:flex;align-items:center;gap:8px;}
+.hud-score{font-size:1.3rem;color:var(--gold);}
+.progress-bar-wrap{width:180px;height:10px;background:#ffffff18;border-radius:50px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--subj),var(--gold),var(--pred));border-radius:50px;transition:width 0.5s ease;width:0%;}
+.section{max-width:820px;margin:20px auto;padding:0 16px;position:relative;z-index:1;}
+.section-card{background:var(--card);border-radius:24px;overflow:hidden;border:1px solid #ffffff12;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.section-head{padding:16px 26px;font-family:'Baloo 2',cursive;font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:12px;color:white;flex-wrap:wrap;}
+.section-body{padding:22px 26px;}
+.sh-1{background:linear-gradient(135deg,#FF6B35cc,#FF8C55cc);}
+.sh-2{background:linear-gradient(135deg,#7C3AEDcc,#A855F7cc);}
+.sh-3{background:linear-gradient(135deg,#059669cc,#10B981cc);}
+.sh-4{background:linear-gradient(135deg,#0284C7cc,#38BDF8cc);}
+.sh-5{background:linear-gradient(135deg,#D97706cc,#F59E0Bcc);}
+.tip{background:#ffffff08;border-left:4px solid;border-radius:0 12px 12px 0;padding:10px 14px;margin-bottom:18px;font-size:0.88rem;color:var(--muted);font-weight:600;line-height:1.6;}
+.tip strong{color:var(--text);}
+.tip-x{border-color:var(--gold);}.tip-p{border-color:var(--pred);}
+.tip-o{border-color:var(--ort);}.tip-z{border-color:var(--zeit);}
+
+/* ─ Coloring task ─ */
+.color-sentence{display:flex;flex-direction:column;gap:14px;}
+.cs-row{background:#ffffff08;border-radius:14px;padding:14px 16px;border:1px solid #ffffff10;}
+.cs-sentence{font-size:1.05rem;font-weight:700;line-height:2.6;margin-bottom:8px;}
+.w-btn{display:inline-block;margin:2px 3px;padding:4px 10px;border-radius:8px;cursor:pointer;
+  border:2px solid #ffffff20;background:#ffffff0a;color:var(--text);
+  font-family:'Quicksand',sans-serif;font-size:1rem;font-weight:700;transition:all 0.15s;user-select:none;}
+.w-btn:hover{border-color:#ffffff50;transform:translateY(-2px);}
+.w-btn.sel-s{background:#FF6B3530;border-color:var(--subj);color:var(--subj);}
+.w-btn.sel-p{background:#7C3AED30;border-color:var(--pred);color:var(--pred);}
+.w-btn.sel-o{background:#05996930;border-color:var(--ort);color:var(--ort);}
+.w-btn.sel-z{background:#0284C730;border-color:var(--zeit);color:var(--zeit);}
+.w-btn.correct{filter:brightness(1.4);}
+.w-btn.miss{border-color:var(--wrong)!important;background:#F43F5E20!important;color:var(--wrong)!important;animation:shake 0.3s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.color-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.cp-btn{padding:6px 14px;border-radius:50px;border:2px solid;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.15s;background:transparent;font-family:'Quicksand',sans-serif;}
+.cp-btn:hover{opacity:0.8;transform:scale(1.05);}
+.cp-btn.active{color:white!important;}
+.cp-s{color:var(--subj);border-color:var(--subj);}.cp-s.active{background:var(--subj);}
+.cp-p{color:var(--pred);border-color:var(--pred);}.cp-p.active{background:var(--pred);}
+.cp-o{color:var(--ort);border-color:var(--ort);}.cp-o.active{background:var(--ort);}
+.cp-z{color:var(--zeit);border-color:var(--zeit);}.cp-z.active{background:var(--zeit);}
+
+/* ─ Sort quiz ─ */
+.sort-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:500px){.sort-grid{grid-template-columns:1fr;}}
+.sort-card{background:#ffffff08;border:2px dashed #ffffff20;border-radius:14px;padding:14px 16px;
+  cursor:pointer;transition:all 0.2s;font-size:0.95rem;font-weight:700;text-align:center;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.sort-card:hover{border-color:#ffffff50;transform:translateY(-2px);}
+.sort-label{font-size:0.7rem;color:var(--muted);font-weight:600;}
+.sort-card.chosen-s{border-color:var(--subj);background:#FF6B3520;color:var(--subj);border-style:solid;}
+.sort-card.chosen-p{border-color:var(--pred);background:#7C3AED20;color:var(--pred);border-style:solid;}
+.sort-card.chosen-o{border-color:var(--ort);background:#05996920;color:var(--ort);border-style:solid;}
+.sort-card.chosen-z{border-color:var(--zeit);background:#0284C720;color:var(--zeit);border-style:solid;}
+.sort-card.correct-c{filter:brightness(1.3);}
+.sort-card.wrong-c{border-color:var(--wrong)!important;background:#F43F5E20!important;color:var(--wrong)!important;}
+.type-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;justify-content:center;}
+
+/* ─ Gap fill ─ */
+.gap-row{background:#ffffff08;border-radius:14px;padding:14px 18px;margin-bottom:10px;
+  border:1px solid #ffffff10;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  font-size:1rem;font-weight:700;line-height:2.2;}
+.gap-wrap{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.gap-input{border:2px solid #ffffff30;border-radius:10px;background:#ffffff10;color:var(--text);
+  font-family:'Quicksand',sans-serif;font-weight:700;font-size:0.9rem;padding:4px 10px;
+  width:130px;outline:none;transition:border-color 0.2s;}
+.gap-input:focus{border-color:var(--gold);}
+.gap-input.ok{border-color:var(--correct);background:#22C55E18;color:var(--correct);}
+.gap-input.err{border-color:var(--wrong);background:#F43F5E18;color:var(--wrong);}
+.gap-tag{font-size:0.68rem;padding:2px 7px;border-radius:50px;font-weight:800;color:white;white-space:nowrap;}
+.gt-s{background:var(--subj);}.gt-p{background:var(--pred);}.gt-o{background:var(--ort);}.gt-z{background:var(--zeit);}
+
+/* ─ Verb drag ─ */
+.verb-rows{display:flex;flex-direction:column;gap:12px;}
+.vr{display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:#ffffff08;
+  padding:14px 18px;border-radius:14px;border:1px solid #ffffff10;font-size:1rem;font-weight:700;transition:all 0.3s;}
+.vr.ok{border-color:var(--correct);background:#22C55E10;}
+.vr.err{border-color:var(--wrong);background:#F43F5E10;}
+.dz{min-width:80px;min-height:36px;border:2px dashed #7C3AED80;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;padding:3px 10px;
+  font-size:0.95rem;font-weight:800;color:var(--pred);background:#7C3AED15;
+  transition:all 0.2s;cursor:pointer;user-select:none;}
+.dz.over{border-color:var(--pred);background:#7C3AED35;transform:scale(1.05);}
+.dz.filled{border-style:solid;border-color:var(--pred);}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.chip{padding:8px 18px;border-radius:50px;font-size:0.95rem;font-weight:800;
+  cursor:grab;border:2px solid var(--pred);background:#7C3AED20;color:var(--pred);
+  transition:all 0.15s;user-select:none;touch-action:none;}
+.chip:hover{transform:translateY(-3px);box-shadow:var(--glow-p);}
+.chip.used{opacity:0.2;pointer-events:none;}
+.chip.dragging{opacity:0.5;transform:scale(0.95);}
+
+/* ─ Grundform ─ */
+.gf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:500px){.gf-grid{grid-template-columns:1fr;}}
+.gf-card{background:#ffffff08;border-radius:14px;padding:14px 16px;border:1px solid #ffffff12;display:flex;flex-direction:column;gap:7px;}
+.gf-word{font-size:1.15rem;font-weight:800;color:var(--pred);}
+.gf-hint{font-size:0.78rem;color:var(--muted);}
+.gf-input{background:#ffffff10;border:2px solid #ffffff20;border-radius:10px;color:var(--text);
+  font-family:'Quicksand',sans-serif;font-weight:700;font-size:0.9rem;padding:7px 12px;outline:none;transition:border-color 0.2s;}
+.gf-input:focus{border-color:var(--pred);}
+.gf-input.ok{border-color:var(--correct);background:#22C55E18;color:var(--correct);}
+.gf-input.err{border-color:var(--wrong);background:#F43F5E18;color:var(--wrong);}
+
+/* ─ Generator ─ */
+.gen-box{background:#ffffff08;border-radius:16px;padding:18px 20px;margin-bottom:16px;border:2px solid var(--gold)40;min-height:80px;}
+.gen-sentence{font-size:1.2rem;font-weight:800;line-height:2;margin-bottom:12px;}
+.gen-word{display:inline-block;margin:2px 3px;padding:4px 12px;border-radius:8px;font-weight:700;}
+.gw-s{background:#FF6B3530;color:var(--subj);border:2px solid var(--subj);}
+.gw-p{background:#7C3AED30;color:var(--pred);border:2px solid var(--pred);}
+.gw-o{background:#05996930;color:var(--ort);border:2px solid var(--ort);}
+.gw-z{background:#0284C730;color:var(--zeit);border:2px solid var(--zeit);}
+.gen-labels{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.gen-label-item{display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;font-weight:700;}
+
+/* ─ Buttons ─ */
+.btn-row{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;}
+.btn{padding:11px 24px;border:none;border-radius:50px;font-family:'Quicksand',sans-serif;font-weight:800;font-size:0.92rem;cursor:pointer;transition:all 0.15s;}
+.btn:hover{transform:translateY(-2px);}
+.btn:active{transform:scale(0.97);}
+.btn-go{background:var(--gold);color:#1A1000;box-shadow:0 4px 18px rgba(255,215,0,0.35);}
+.btn-reset{background:#ffffff15;color:var(--muted);}
+.btn-gen{background:linear-gradient(135deg,var(--pred),#A855F7);color:white;box-shadow:0 4px 18px rgba(124,58,237,0.4);}
+
+/* ─ Feedback ─ */
+.fb{margin-top:14px;padding:12px 16px;border-radius:12px;font-weight:800;font-size:0.9rem;display:none;animation:pop 0.3s ease;line-height:1.5;}
+.fb.show{display:block;}
+.fb.good{background:#22C55E15;border:2px solid var(--correct);color:var(--correct);}
+.fb.bad{background:#F43F5E15;border:2px solid var(--wrong);color:#FF8096;}
+@keyframes pop{0%{transform:scale(0.85) translateY(6px);opacity:0;}100%{transform:scale(1) translateY(0);opacity:1;}}
+
+/* ─ Trophy ─ */
+.trophy{max-width:820px;margin:30px auto;padding:0 16px;display:none;position:relative;z-index:1;}
+.trophy.show{display:block;animation:pop 0.6s ease;}
+.trophy-inner{background:linear-gradient(135deg,var(--card),var(--card2));border:2px solid var(--gold);
+  border-radius:28px;padding:40px;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.25);}
+.trophy-emoji{font-size:5rem;animation:bounce 1s infinite alternate;display:block;}
+@keyframes bounce{0%{transform:translateY(0);}100%{transform:translateY(-15px);}}
+.trophy h2{font-family:'Baloo 2',cursive;font-size:2.2rem;
+  background:linear-gradient(135deg,var(--gold),#FF6B35);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;margin:14px 0 8px;}
+.trophy p{color:var(--muted);font-size:1rem;font-weight:600;}
+.medal-row{font-size:2rem;letter-spacing:6px;margin-top:12px;}
+
+.section-num{background:rgba(255,255,255,0.2);border-radius:50%;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="stars-bg" id="starsBg"></div>
+
+<header>
+  <h1>🦸 Satzglieder-Abenteuer!</h1>
+  <p class="subtitle">Lerne alle Satzglieder mit Spaß und werde ein Grammatik-Superheld!</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item li-s"><div class="legend-dot"></div>🧑 Subjekt — Wer/Was?</div>
+  <div class="legend-item li-p"><div class="legend-dot"></div>⚡ Prädikat — Was tut?</div>
+  <div class="legend-item li-o"><div class="legend-dot"></div>📍 Ort — Wo?</div>
+  <div class="legend-item li-z"><div class="legend-dot"></div>🕐 Zeit — Wann?</div>
+</div>
+
+<div class="hud">
+  <div class="hud-pill">⭐ Punkte: <span class="hud-score" id="scoreNum">0</span>&nbsp;/&nbsp;35</div>
+  <div class="hud-pill"><div class="progress-bar-wrap"><div class="progress-bar-fill" id="progBar"></div></div></div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- AUFGABE 0: SATZ-GENERATOR       -->
+<!-- ════════════════════════════════ -->
+<div class="section">
+  <div class="section-card">
+    <div class="section-head sh-2">
+      <span class="section-num">✨</span>
+      Satz-Generator — Lerne mit neuen Sätzen!
+    </div>
+    <div class="section-body">
+      <div class="tip tip-p">
+        💡 Drücke auf <strong>Neuen Satz!</strong> und sieh, wie ein Satz aus Satzgliedern aufgebaut ist.<br>
+        Jede Farbe zeigt dir ein anderes Satzglied!
+      </div>
+      <div class="gen-box" id="genBox">
+        <div style="color:var(--muted);font-weight:600;">Drücke den Knopf um einen Satz zu sehen! 👇</div>
+      </div>
+      <div class="gen-labels" id="genLabels"></div>
+      <div class="btn-row">
+        <button class="btn btn-gen" onclick="generateSentence()">✨ Neuen Satz!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- AUFGABE 1: EINFÄRBEN            -->
+<!-- ════════════════════════════════ -->
+<div class="section">
+  <div class="section-card">
+    <div class="section-head sh-1"><span class="section-num">1</span>Male die Satzglieder an!</div>
+    <div class="section-body">
+      <div class="tip tip-x">
+        💡 <strong>Wähle eine Farbe</strong>, dann klicke auf die Wörter im Satz!
+      </div>
+      <div id="colorSentences" class="color-sentence"></div>
+      <div class="btn-row">
+        <button class="btn btn-go" onclick="checkColoring()">✅ Prüfen!</button>
+        <button class="btn btn-reset" onclick="resetColoring()">🔄 Nochmal</button>
+        <button class="btn btn-gen" onclick="newColorSentences()">✨ Neue Sätze!</button>
+      </div>
+      <div class="fb" id="fb1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- AUFGABE 2: SORTIEREN            -->
+<!-- ════════════════════════════════ -->
+<div class="section">
+  <div class="section-card">
+    <div class="section-head sh-4"><span class="section-num">2</span>Was ist das für ein Satzglied?</div>
+    <div class="section-body">
+      <div class="tip tip-z">
+        💡 Wähle eine Farbe und klicke dann auf die Wörter!
+      </div>
+      <div class="type-picker" id="sortPicker">
+        <button class="cp-btn cp-s active" onclick="setType('s',this)">🧑 Subjekt</button>
+        <button class="cp-btn cp-p" onclick="setType('p',this)">⚡ Prädikat</button>
+        <button class="cp-btn cp-o" onclick="setType('o',this)">📍 Ort</button>
+        <button class="cp-btn cp-z" onclick="setType('z',this)">🕐 Zeit</button>
+      </div>
+      <div class="sort-grid" id="sortGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-go" onclick="checkSort()">✅ Prüfen!</button>
+        <button class="btn btn-reset" onclick="resetSort()">🔄 Nochmal</button>
+        <button class="btn btn-gen" onclick="newSortItems()">✨ Neue Aufgabe!</button>
+      </div>
+      <div class="fb" id="fb2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- AUFGABE 3: LÜCKENTEXT           -->
+<!-- ════════════════════════════════ -->
+<div class="section">
+  <div class="section-card">
+    <div class="section-head sh-3"><span class="section-num">3</span>Ergänze die Satzglieder!</div>
+    <div class="section-body">
+      <div class="tip tip-o">
+        💡 Füll die Lücken aus! Das farbige Schildchen zeigt, welches Satzglied fehlt.<br>
+        <strong>Tipp:</strong> Es gibt oft mehrere richtige Antworten — Hauptsache du hast die richtige Idee! 😊
+      </div>
+      <div id="gapRows"></div>
+      <div class="btn-row">
+        <button class="btn btn-go" onclick="checkGaps()">✅ Prüfen!</button>
+        <button class="btn btn-reset" onclick="resetGaps()">🔄 Nochmal</button>
+        <button class="btn btn-gen" onclick="newGaps()">✨ Neue Lücken!</button>
+      </div>
+      <div class="fb" id="fb3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- AUFGABE 4: DRAG & DROP          -->
+<!-- ════════════════════════════════ -->
+<div class="section">
+  <div class="section-card">
+    <div class="section-head sh-2"><span class="section-num">4</span>Trennbare Verben — wo endet das Verb?</div>
+    <div class="section-body">
+      <div class="tip tip-p">
+        💡 <strong>Trennbare Verben sind wie ein Sandwich! 🥪</strong><br>
+        Das Verb-Ende wandert ans <strong>Ende</strong> des Satzes.<br>
+        <em style="color:var(--pred)">einkaufen</em> → "Mama <em style="color:var(--pred)">kauft</em> Äpfel <em style="color:var(--pred)">ein.</em>"<br>
+        👆 Tippe auf ein Verb-Ende und dann auf die Lücke!
+      </div>
+      <div class="verb-rows" id="verbRows"></div>
+      <div class="chips" id="chipArea"></div>
+      <div class="btn-row">
+        <button class="btn btn-go" onclick="checkVerbs()">✅ Prüfen!</button>
+        <button class="btn btn-reset" onclick="resetVerbs()">🔄 Nochmal</button>
+        <button class="btn btn-gen" onclick="newVerbs()">✨ Neue Aufgabe!</button>
+      </div>
+      <div class="fb" id="fb4"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- AUFGABE 5: GRUNDFORM            -->
+<!-- ════════════════════════════════ -->
+<div class="section">
+  <div class="section-card">
+    <div class="section-head sh-5"><span class="section-num">5</span>Die Grundform-Maschine</div>
+    <div class="section-body">
+      <div class="tip tip-p">
+        💡 <strong>Frage: Was kann man tun?</strong> Das ist die Grundform!<br>
+        🐛→🦋 <em style="color:var(--pred)">"läuft"</em> → <em style="color:var(--correct)">"laufen"</em>
+        &nbsp;|&nbsp; <em style="color:var(--pred)">"singt"</em> → <em style="color:var(--correct)">"singen"</em>
+      </div>
+      <div class="gf-grid" id="gfGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-go" onclick="checkGf()">✅ Prüfen!</button>
+        <button class="btn btn-reset" onclick="resetGf()">🔄 Nochmal</button>
+        <button class="btn btn-gen" onclick="newGf()">✨ Neue Verben!</button>
+      </div>
+      <div class="fb" id="fb5"></div>
+    </div>
+  </div>
+</div>
+
+<div class="trophy" id="trophy">
+  <div class="trophy-inner">
+    <span class="trophy-emoji">🏆</span>
+    <h2>Grammatik-Superheld!</h2>
+    <p>Du kennst jetzt alle Satzglieder wie ein echter Profi! 🦸‍♂️</p>
+    <div class="medal-row">🥇⭐🎖️⭐🥇</div>
+  </div>
+</div>
+
+<script>
+// ═══ STARS ═══
+(function(){
+  const sb=document.getElementById('starsBg');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');s.className='star';
+    s.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*4+'s;animation-duration:'+(2+Math.random()*3)+'s;opacity:'+Math.random()*0.4;
+    sb.appendChild(s);
+  }
+})();
+
+// ═══ SCORE ═══
+let score=0;
+const MAX=35;
+function addScore(n){
+  score=Math.min(MAX,score+n);
+  document.getElementById('scoreNum').textContent=score;
+  document.getElementById('progBar').style.width=(score/MAX*100)+'%';
+  if(score>=28) document.getElementById('trophy').classList.add('show');
+}
+function showFb(id,ok,msg){
+  const el=document.getElementById(id);
+  el.className='fb show '+(ok?'good':'bad');
+  el.textContent=msg;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DATA POOLS
+// ═══════════════════════════════════════════════════════════
+const SUBJECTS=[
+  {text:'Der Hund',emoji:'🐶'},{text:'Die Katze',emoji:'🐱'},
+  {text:'Der Affe',emoji:'🐒'},{text:'Die Kinder',emoji:'👧'},
+  {text:'Der Zauberer',emoji:'🧙'},{text:'Das Baby',emoji:'👶'},
+  {text:'Die Feuerwehr',emoji:'🚒'},{text:'Der Detektiv',emoji:'🕵️'},
+  {text:'Die Lehrerin',emoji:'👩‍🏫'},{text:'Der Frosch',emoji:'🐸'},
+  {text:'Das Eichhörnchen',emoji:'🐿️'},{text:'Meine Oma',emoji:'👵'},
+  {text:'Der Drache',emoji:'🐉'},{text:'Das Einhorn',emoji:'🦄'},
+];
+const PREDICATES=[
+  {text:'schläft',gf:'schlafen'},{text:'läuft',gf:'laufen'},
+  {text:'springt',gf:'springen'},{text:'singt',gf:'singen'},
+  {text:'klettert',gf:'klettern'},{text:'schwimmt',gf:'schwimmen'},
+  {text:'brüllt',gf:'brüllen'},{text:'lacht',gf:'lachen'},
+  {text:'tanzt',gf:'tanzen'},{text:'versteckt sich',gf:'sich verstecken'},
+  {text:'fliegt',gf:'fliegen'},{text:'rennt',gf:'rennen'},
+  {text:'kämpft',gf:'kämpfen'},{text:'isst',gf:'essen'},
+];
+const PLACES=[
+  'im Zoo','auf dem Spielplatz','im Wald','im Park','auf dem Dach',
+  'im Schwimmbad','in der Schule','auf dem Berg','im Garten','am See',
+  'in der Höhle','auf der Wiese','im Supermarkt','auf dem Baum',
+];
+const TIMES=[
+  'heute','morgens','am Abend','gestern','immer',
+  'manchmal','im Winter','am Montag','jetzt','nachts',
+  'am Wochenende','im Sommer','oft','plötzlich',
+];
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function pickN(arr,n){
+  const copy=[...arr]; const res=[];
+  for(let i=0;i<n;i++){ const idx=Math.floor(Math.random()*copy.length); res.push(copy.splice(idx,1)[0]); }
+  return res;
+}
+
+function makeSentence(){
+  const s=pick(SUBJECTS), p=pick(PREDICATES), o=pick(PLACES), z=pick(TIMES);
+  return {s,p,o,z,
+    text:`${s.emoji} ${s.text} ${p.text} ${z} ${o}.`,
+    parts:[
+      {word:s.emoji+' '+s.text, type:'s'},
+      {word:p.text, type:'p'},
+      {word:z, type:'z'},
+      {word:o+'.', type:'o'},
+    ]
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// GENERATOR (Aufgabe 0)
+// ═══════════════════════════════════════════════════════════
+const typeInfo={s:{label:'Subjekt',cls:'gw-s'},p:{label:'Prädikat',cls:'gw-p'},
+                o:{label:'Ort',cls:'gw-o'},z:{label:'Zeit',cls:'gw-z'}};
+const typeEmoji={s:'🧑',p:'⚡',o:'📍',z:'🕐'};
+
+function generateSentence(){
+  const sen=makeSentence();
+  const box=document.getElementById('genBox');
+  const labels=document.getElementById('genLabels');
+  let html='<div class="gen-sentence">';
+  sen.parts.forEach(p=>{
+    html+=`<span class="gen-word ${typeInfo[p.type].cls}">${p.word}</span> `;
+  });
+  html+='</div>';
+  box.innerHTML=html;
+  labels.innerHTML=Object.entries(typeInfo).map(([k,v])=>
+    `<span class="gen-label-item"><span class="gen-word ${v.cls}" style="padding:2px 8px;font-size:0.8rem">${typeEmoji[k]} ${v.label}</span></span>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TASK 1: COLORING
+// ═══════════════════════════════════════════════════════════
+let colorData=[];
+let colorStates=[];
+let currentColor='s';
+
+function makeCData(){
+  return pickN([...Array(14).keys()].map(()=>makeSentence()),4).map(sen=>{
+    const words=[], labels=[];
+    sen.parts.forEach(p=>{
+      p.word.split(' ').forEach(w=>{ if(w){words.push(w);labels.push(p.type);} });
+    });
+    return {words,labels};
+  });
+}
+
+function setColor(t,btn){
+  currentColor=t;
+  document.querySelectorAll('#colorSentences .color-picker .cp-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function buildColoring(){
+  const con=document.getElementById('colorSentences');
+  con.innerHTML='';
+  const picker=document.createElement('div');
+  picker.className='color-picker';
+  picker.innerHTML=`
+    <button class="cp-btn cp-s active" onclick="setColor('s',this)">🧑 Subjekt</button>
+    <button class="cp-btn cp-p" onclick="setColor('p',this)">⚡ Prädikat</button>
+    <button class="cp-btn cp-o" onclick="setColor('o',this)">📍 Ort</button>
+    <button class="cp-btn cp-z" onclick="setColor('z',this)">🕐 Zeit</button>`;
+  con.appendChild(picker);
+  colorData.forEach((d,si)=>{
+    colorStates[si]=new Array(d.words.length).fill('');
+    const row=document.createElement('div');row.className='cs-row';
+    const sent=document.createElement('div');sent.className='cs-sentence';
+    d.words.forEach((w,wi)=>{
+      const btn=document.createElement('span');btn.className='w-btn';btn.textContent=w;
+      btn.addEventListener('click',()=>{
+        if(colorStates[si][wi]===currentColor){colorStates[si][wi]='';btn.className='w-btn';}
+        else{colorStates[si][wi]=currentColor;btn.className='w-btn sel-'+currentColor;}
+      });
+      sent.appendChild(btn);
+    });
+    row.appendChild(sent);con.appendChild(row);
+  });
+}
+
+function newColorSentences(){
+  colorData=makeCData();colorStates=colorData.map(d=>new Array(d.words.length).fill(''));
+  buildColoring();document.getElementById('fb1').classList.remove('show');
+}
+
+function checkColoring(){
+  let total=0,correct=0;
+  const rows=document.querySelectorAll('#colorSentences .cs-row');
+  colorData.forEach((d,si)=>{
+    const btns=rows[si].querySelectorAll('.w-btn');
+    d.words.forEach((w,wi)=>{
+      total++;
+      if(colorStates[si][wi]===d.labels[wi]){correct++;btns[wi].classList.add('correct');}
+      else btns[wi].classList.add('miss');
+    });
+  });
+  const ok=correct===total;
+  showFb('fb1',ok,ok?`🎉 Alle ${total} Wörter richtig! Satzglied-Meister! +7 Punkte!`:`🎨 ${correct}/${total} richtig. Tipp: Wähle erst eine Farbe, dann klicke!`);
+  if(ok) addScore(7);
+}
+function resetColoring(){buildColoring();document.getElementById('fb1').classList.remove('show');}
+
+// ═══════════════════════════════════════════════════════════
+// TASK 2: SORT QUIZ
+// ═══════════════════════════════════════════════════════════
+let sortItems=[];
+let sortChosen=[];
+let sortType='s';
+
+const sortPool=[
+  {text:'🐶 Der Hund',ans:'s'},{text:'🧙 Der Zauberer',ans:'s'},
+  {text:'👩‍🏫 Die Lehrerin',ans:'s'},{text:'🐉 Der Drache',ans:'s'},
+  {text:'⚡ schläft',ans:'p'},{text:'⚡ klettert',ans:'p'},
+  {text:'⚡ frisst eine Banane',ans:'p'},{text:'⚡ singt laut',ans:'p'},
+  {text:'📍 im Park',ans:'o'},{text:'📍 auf dem Dach',ans:'o'},
+  {text:'📍 im Schwimmbad',ans:'o'},{text:'📍 auf dem Baum',ans:'o'},
+  {text:'🕐 morgens',ans:'z'},{text:'🕐 am Montag',ans:'z'},
+  {text:'🕐 gestern',ans:'z'},{text:'🕐 im Winter',ans:'z'},
+];
+
+function makeSortItems(){return pickN(sortPool,8);}
+
+function setType(t,btn){
+  sortType=t;
+  document.querySelectorAll('#sortPicker .cp-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function buildSort(){
+  const g=document.getElementById('sortGrid');g.innerHTML='';
+  sortChosen=new Array(sortItems.length).fill('');
+  sortItems.forEach((item,i)=>{
+    const card=document.createElement('div');card.className='sort-card';
+    card.innerHTML=`<div class="sort-label">Was ist das?</div>${item.text}`;
+    card.addEventListener('click',()=>{
+      if(sortChosen[i]===sortType){sortChosen[i]='';card.className='sort-card';}
+      else{sortChosen[i]=sortType;card.className='sort-card chosen-'+sortType;}
+    });
+    g.appendChild(card);
+  });
+}
+
+function newSortItems(){
+  sortItems=makeSortItems();buildSort();
+  document.getElementById('fb2').classList.remove('show');
+  document.querySelectorAll('#sortPicker .cp-btn').forEach((b,i)=>{b.classList.remove('active');if(i===0)b.classList.add('active');});
+  sortType='s';
+}
+
+function checkSort(){
+  let ok=0;
+  document.querySelectorAll('#sortGrid .sort-card').forEach((card,i)=>{
+    card.classList.remove('correct-c','wrong-c');
+    if(sortChosen[i]===sortItems[i].ans){ok++;card.classList.add('correct-c');}
+    else card.classList.add('wrong-c');
+  });
+  const all=sortItems.length,good=ok===all;
+  showFb('fb2',good,good?`⭐ Brilliant! Alle ${all} Satzglieder erkannt! +7 Punkte!`:`🔍 ${ok}/${all} richtig. Frag: Wer? Was tut? Wo? Wann?`);
+  if(good) addScore(7);
+}
+function resetSort(){buildSort();document.getElementById('fb2').classList.remove('show');}
+
+// ═══════════════════════════════════════════════════════════
+// TASK 3: GAP FILL — FLEXIBLE CHECKING
+// ═══════════════════════════════════════════════════════════
+const gapPool=[
+  {parts:['🐻', {type:'s',ans:['Der Bär','Ein Bär','der Bär']}, 'schläft', {type:'z',ans:['im Winter','den Winter über']}, 'in der Höhle.']},
+  {parts:['🐟', 'Der Fisch', {type:'p',ans:['schwimmt','taucht']}, 'jetzt', {type:'o',ans:['im See','im Wasser','im Teich']},'.' ]},
+  {parts:['🚒', {type:'s',ans:['Die Feuerwehr','Das Feuerwehrauto','Der Feuerwehrmann']}, 'löscht', {type:'z',ans:['heute','jetzt','heute Nacht']}, 'das Feuer.']},
+  {parts:['🐒', 'Das Äffchen', 'klettert', {type:'o',ans:['auf den Baum','auf dem Baum','auf einen Baum']}, {type:'z',ans:['am Morgen','morgens','früh']}, '.']},
+  {parts:['🧙', {type:'s',ans:['Der Zauberer','Ein Zauberer']}, {type:'p',ans:['verschwindet','zaubert','fliegt']}, 'plötzlich', 'im Wald.']},
+  {parts:['🐶', {type:'s',ans:['Der Hund','Ein Hund','der Hund']}, 'bellt', {type:'z',ans:['heute','morgens','abends']}, {type:'o',ans:['im Park','im Garten','auf der Wiese']},'.']},
+  {parts:['🦄', 'Das Einhorn', {type:'p',ans:['fliegt','galoppiert','springt']}, {type:'z',ans:['nachts','abends','immer']}, 'über die Wolken.']},
+  {parts:['👩‍🏫', {type:'s',ans:['Die Lehrerin','Eine Lehrerin']}, 'singt', {type:'z',ans:['morgens','jeden Tag','oft']}, {type:'o',ans:['in der Schule','im Klassenzimmer','mit der Klasse']},'.' ]},
+];
+
+let activeGaps=[];
+
+function normalise(s){ return s.trim().toLowerCase().replace(/[.,!?]/g,''); }
+
+function isGapCorrect(input, ans){
+  const v=normalise(input);
+  if(!v) return false;
+  const answers=Array.isArray(ans)?ans:[ans];
+  // exact match
+  if(answers.some(a=>normalise(a)===v)) return true;
+  // contained (partial, at least 3 chars)
+  if(v.length>=3 && answers.some(a=>normalise(a).includes(v)||v.includes(normalise(a)))) return true;
+  // keyword match: any word from answer in input
+  if(answers.some(a=>a.toLowerCase().split(' ').some(w=>w.length>3&&v.includes(w.toLowerCase())))) return true;
+  return false;
+}
+
+function buildGaps(){
+  const con=document.getElementById('gapRows');con.innerHTML='';
+  const labels={s:'Subjekt',p:'Prädikat',o:'Ort',z:'Zeit'};
+  activeGaps.forEach((g)=>{
+    const row=document.createElement('div');row.className='gap-row';
+    g.parts.forEach(part=>{
+      if(typeof part==='string'){
+        const sp=document.createElement('span');sp.textContent=part+' ';row.appendChild(sp);
+      } else {
+        const wrap=document.createElement('span');wrap.className='gap-wrap';
+        const inp=document.createElement('input');inp.className='gap-input';
+        inp.placeholder='Ergänze…';
+        inp.dataset.ans=JSON.stringify(part.ans);inp.dataset.type=part.type;
+        inp.addEventListener('input',()=>inp.className='gap-input');
+        const tag=document.createElement('span');tag.className='gap-tag gt-'+part.type;
+        tag.textContent=labels[part.type];
+        wrap.appendChild(inp);wrap.appendChild(tag);row.appendChild(wrap);
+        const sp2=document.createElement('span');sp2.textContent=' ';row.appendChild(sp2);
+      }
+    });
+    con.appendChild(row);
+  });
+}
+
+function newGaps(){
+  activeGaps=pickN(gapPool,5);buildGaps();
+  document.getElementById('fb3').classList.remove('show');
+}
+
+function checkGaps(){
+  let ok=0,total=0;
+  document.querySelectorAll('.gap-input').forEach(inp=>{
+    total++;
+    const ans=JSON.parse(inp.dataset.ans);
+    if(isGapCorrect(inp.value,ans)){ok++;inp.className='gap-input ok';}
+    else inp.className='gap-input err';
+  });
+  const good=ok===total;
+  showFb('fb3',good,good?`✏️ Super! Alle ${total} Lücken richtig! +7 Punkte!`:`💪 ${ok}/${total} richtig. Schau auf das Schildchen — welches Satzglied fehlt?`);
+  if(good) addScore(7);
+}
+function resetGaps(){buildGaps();document.getElementById('fb3').classList.remove('show');}
+
+// ═══════════════════════════════════════════════════════════
+// TASK 4: VERB DRAG — CLICK-TO-ASSIGN (touch & mouse)
+// ═══════════════════════════════════════════════════════════
+const verbPool=[
+  {text:'🧥 Peter zieht seine Jacke',ans:'an',full:'anziehen'},
+  {text:'📖 Der Lehrer liest ein Buch',ans:'vor',full:'vorlesen'},
+  {text:'📓 Er gibt das Heft wieder',ans:'zurück',full:'zurückgeben'},
+  {text:'🏫 Papa holt die Kinder',ans:'ab',full:'abholen'},
+  {text:'🛍️ Mama kauft Lebensmittel',ans:'ein',full:'einkaufen'},
+  {text:'📞 Oma ruft Opa',ans:'an',full:'anrufen'},
+  {text:'🚪 Das Kind macht die Tür',ans:'auf',full:'aufmachen'},
+  {text:'🎒 Der Schüler packt seine Tasche',ans:'aus',full:'auspacken'},
+  {text:'🏠 Wir kommen',ans:'an',full:'ankommen'},
+  {text:'🌅 Die Sonne geht',ans:'auf',full:'aufgehen'},
+];
+
+let activeVerbs=[];
+let dzFilled=[];
+let selectedChip=null; // for click-mode
+
+function buildVerbs(){
+  const con=document.getElementById('verbRows');con.innerHTML='';
+  dzFilled=new Array(activeVerbs.length).fill('');
+  selectedChip=null;
+
+  activeVerbs.forEach((v,i)=>{
+    const row=document.createElement('div');row.className='vr';
+    const txt=document.createElement('span');txt.textContent=v.text+' ';
+    const dz=document.createElement('span');
+    dz.className='dz';dz.id='dz'+i;dz.dataset.i=i;dz.textContent='?';
+
+    const hint=document.createElement('span');
+    hint.style.cssText='color:var(--muted);font-size:0.78rem;margin-left:4px;';
+    hint.textContent='('+v.full+')';
+
+    // CLICK on drop zone
+    dz.addEventListener('click',()=>{
+      if(selectedChip!==null){
+        const val=selectedChip;
+        dzFilled[i]=val;
+        dz.textContent=val;dz.classList.add('filled');
+        // unmark chip
+        document.querySelectorAll('.chip').forEach(c=>{
+          if(c.dataset.val===val) c.classList.add('used');
+        });
+        selectedChip=null;
+        document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected-chip'));
+      }
+    });
+
+    // DRAG events (desktop)
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+    dz.addEventListener('drop',e=>{
+      e.preventDefault();e.stopPropagation();
+      const val=e.dataTransfer.getData('text/plain');
+      if(!val) return;
+      dzFilled[i]=val;
+      dz.textContent=val;dz.classList.remove('over');dz.classList.add('filled');
+      document.querySelectorAll('.chip').forEach(c=>{if(c.dataset.val===val)c.classList.add('used');});
+      selectedChip=null;
+    });
+
+    row.appendChild(txt);row.appendChild(dz);row.appendChild(hint);
+    con.appendChild(row);
+  });
+
+  // Chips
+  const ca=document.getElementById('chipArea');ca.innerHTML='';
+  activeVerbs.forEach(v=>{
+    const c=document.createElement('div');
+    c.className='chip';c.draggable=true;c.dataset.val=v.ans;c.textContent=v.ans;
+
+    // CLICK: select chip
+    c.addEventListener('click',()=>{
+      if(c.classList.contains('used')) return;
+      if(selectedChip===v.ans){
+        selectedChip=null;c.classList.remove('selected-chip');
+      } else {
+        selectedChip=v.ans;
+        document.querySelectorAll('.chip').forEach(ch=>ch.classList.remove('selected-chip'));
+        c.classList.add('selected-chip');
+        c.style.boxShadow='0 0 0 3px var(--gold)';
+      }
+    });
+    c.addEventListener('mouseleave',()=>{ if(selectedChip!==v.ans) c.style.boxShadow=''; });
+
+    // DRAG
+    c.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text/plain',v.ans);
+      c.classList.add('dragging');
+    });
+    c.addEventListener('dragend',()=>c.classList.remove('dragging'));
+
+    ca.appendChild(c);
+  });
+}
+
+// De-select chip style on any non-chip click
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('chip')&&!e.target.classList.contains('dz')){
+    selectedChip=null;
+    document.querySelectorAll('.chip').forEach(c=>{c.classList.remove('selected-chip');c.style.boxShadow='';});
+  }
+});
+
+function newVerbs(){
+  activeVerbs=pickN(verbPool,5);buildVerbs();
+  document.getElementById('fb4').classList.remove('show');
+}
+
+function checkVerbs(){
+  let ok=0;
+  document.querySelectorAll('.vr').forEach((row,i)=>{
+    const dz=row.querySelector('.dz');
+    if(dz.textContent.trim()===activeVerbs[i].ans){ok++;row.classList.add('ok');row.classList.remove('err');}
+    else{row.classList.add('err');row.classList.remove('ok');}
+  });
+  const good=ok===activeVerbs.length;
+  showFb('fb4',good,good?`🧩 Fantastisch! Alle Verben richtig! +7 Punkte!`:`🔍 ${ok}/${activeVerbs.length} richtig. Tipp: Klicke zuerst auf ein Verb-Ende, dann auf die Lücke!`);
+  if(good) addScore(7);
+}
+function resetVerbs(){buildVerbs();document.getElementById('fb4').classList.remove('show');}
+
+// ═══════════════════════════════════════════════════════════
+// TASK 5: GRUNDFORM
+// ═══════════════════════════════════════════════════════════
+const gfPool=[
+  {word:'🐸 frisst',hint:'Der Frosch frisst Fliegen.',ans:'fressen'},
+  {word:'🎵 singt',hint:'Die Lehrerin singt ein Lied.',ans:'singen'},
+  {word:'🏃 rennt',hint:'Die Maus rennt vor der Katze.',ans:'rennen'},
+  {word:'🌊 schwimmt',hint:'Der Fisch schwimmt im See.',ans:'schwimmen'},
+  {word:'🚒 löscht',hint:'Die Feuerwehr löscht das Feuer.',ans:'löschen'},
+  {word:'🦘 springt',hint:'Das Känguru springt sehr weit.',ans:'springen'},
+  {word:'✈️ fliegt',hint:'Der Vogel fliegt über die Wolken.',ans:'fliegen'},
+  {word:'📚 liest',hint:'Die Schülerin liest ein Buch.',ans:'lesen'},
+  {word:'🐶 bellt',hint:'Der Hund bellt laut.',ans:'bellen'},
+  {word:'🧙 zaubert',hint:'Der Zauberer zaubert einen Hasen.',ans:'zaubern'},
+  {word:'🍎 isst',hint:'Das Kind isst einen Apfel.',ans:'essen'},
+  {word:'🌙 schläft',hint:'Der Bär schläft im Winter.',ans:'schlafen'},
+  {word:'🎨 malt',hint:'Die Schülerin malt ein Bild.',ans:'malen'},
+  {word:'🏊 taucht',hint:'Der Delfin taucht ins Wasser.',ans:'tauchen'},
+];
+
+let activeGf=[];
+
+function buildGf(){
+  const g=document.getElementById('gfGrid');g.innerHTML='';
+  activeGf.forEach(item=>{
+    const card=document.createElement('div');card.className='gf-card';
+    card.innerHTML=`<div class="gf-word">${item.word}</div>
+      <div class="gf-hint">${item.hint}</div>
+      <input class="gf-input" placeholder="Grundform..." data-ans="${item.ans}" oninput="this.className='gf-input'">`;
+    g.appendChild(card);
+  });
+}
+
+function newGf(){
+  activeGf=pickN(gfPool,8);buildGf();
+  document.getElementById('fb5').classList.remove('show');
+}
+
+function checkGf(){
+  let ok=0;
+  document.querySelectorAll('#gfGrid .gf-input').forEach(inp=>{
+    const val=inp.value.trim().toLowerCase().replace(/[.,!?]/g,'');
+    if(val===inp.dataset.ans){ok++;inp.className='gf-input ok';}
+    else if(val) inp.className='gf-input err';
+  });
+  const total=activeGf.length,good=ok===total;
+  showFb('fb5',good,good?`🔮 Unglaublich! Alle ${total} Grundformen richtig! +7 Punkte!`:`💡 ${ok}/${total} richtig. Tipp: Grundformen enden meist auf "-en"!`);
+  if(good) addScore(7);
+}
+function resetGf(){buildGf();document.getElementById('fb5').classList.remove('show');}
+
+// ═══ INIT ═══
+colorData=makeCData();
+colorStates=colorData.map(d=>new Array(d.words.length).fill(''));
+buildColoring();
+sortItems=makeSortItems();buildSort();
+activeGaps=pickN(gapPool,5);buildGaps();
+activeVerbs=pickN(verbPool,5);buildVerbs();
+activeGf=pickN(gfPool,8);buildGf();
+
+// Add style for selected chip
+const style=document.createElement('style');
+style.textContent='.chip.selected-chip{box-shadow:0 0 0 3px var(--gold)!important;transform:scale(1.08);}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
